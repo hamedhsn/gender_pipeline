@@ -11,7 +11,8 @@ if __name__ == '__main__':
 
     for i in range(5):
         json_msg = {
-            'cid': 'C124',
+            'cid': 'C128',
             'gndr': 'female'
         }
+        print('produce : {}'.format(json_msg))
         ingest(json_msg)

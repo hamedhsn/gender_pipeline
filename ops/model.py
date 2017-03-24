@@ -1,43 +1,93 @@
-from configuration import GNDR_SERV_TOPIC
-from configuration import INGESTION_TOPIC
-from utils.kfkpywrapper import KfkConsumer, KfkProducer
-from utils.mongo import mongo_connect
+import argparse
+import datetime
+
+import configuration as cfg
+from ops.modelbase import Model
+from utils.mongo import inc_gndr
 
 
-class Model:
-    def __init__(self, consumer_grp, model_nm, col_nm):
-        self.cons = KfkConsumer(INGESTION_TOPIC, consumer_grp)
-        self.prod = KfkProducer(GNDR_SERV_TOPIC)
-        self.dbcon = mongo_connect(col_nm=col_nm)
-
-        self.modelnm = model_nm
-
-    def consume(self):
-        for msg in self.cons.consume():
-            gndr_entry = self.create_gndr_entry(msg, self.modelnm)
-            yield gndr_entry
-
-    def create_gndr_entry(self, msg, model):
-        cid = msg['cid']
-        gndr = msg['gndr']
-
-        json_msg = {
-            'cid': cid,
-            'gndr': gndr,
-            'model': model
-        }
-
-        return json_msg
-
-    def dispatch(self):
-        for gndr_entry in self.consume():
-            rslt_entry = self.identify_gender(gndr_entry)
-
-            self.prod.produce(rslt_entry)
-    # def dispatch(self):
-        # consume message/find gender based on model/push to kafka topics
-        # raise NotImplementedError('Non-abstract classes need to implement this method.')
+class Model1(Model):
+    def __init__(self, name=cfg.MODE1_NM, cons_grp=cfg.CONSUMER_GRP_MODEL1, col_nm=cfg.MODEL1_COLNM):
+        super().__init__(consumer_grp=cons_grp, model_nm=name, col_nm=col_nm)
 
     def identify_gender(self, gndr_entry):
-        # consume message/find gender based on model/push to kafka topics
-        raise NotImplementedError('Non-abstract classes need to implement this method.')
+        """ Since solution is based on last gender visited nothing to do
+        so simple return the gender entry
+
+        :param gndr_entry:
+        :return:
+        """
+        return gndr_entry
+
+
+class Model2(Model):
+    def __init__(self, name=cfg.MODE2_NM, cons_grp=cfg.CONSUMER_GRP_MODEL2, col_nm=cfg.MODEL2_COLNM):
+        super().__init__(consumer_grp=cons_grp, model_nm=name, col_nm=col_nm)
+
+    def identify_gender(self, gndr_entry):
+        """ 1) Increment gender based on gender field in gender entry
+            2) Compare count of each gender and return the selected gender
+
+        :param gndr_entry: gender entry
+        :return:
+        """
+        _id = gndr_entry['cid']
+        gndr = gndr_entry['gndr']
+        cnt = inc_gndr(self.dbcon, _id, gndr)
+
+        gndr_entry['gndr'] = 'male' if cnt['male'] > cnt['female'] else 'female'
+        return gndr_entry
+
+
+class Model3(Model):
+    def __init__(self, name=cfg.MODE3_NM, cons_grp=cfg.CONSUMER_GRP_MODEL3, col_nm=cfg.MODEL3_COLNM):
+        super().__init__(consumer_grp=cons_grp, model_nm=name, col_nm=col_nm)
+
+    def get_gendr(self, cid):
+        """
+
+        :param cid:
+        :return:
+        """
+        match = {'$match': {'cid': cid}}
+        grp = {'$group': {'_id': '$gndr', 'tot': {'$sum': 1}}}
+        res = self.dbcon.aggregate([match, grp])
+
+        cnt_gndr = 0
+        gndr = None
+        for itm in res:
+            if itm['tot'] > cnt_gndr:
+                gndr = itm['_id']
+                cnt_gndr = itm['tot']
+
+        return gndr
+
+    def identify_gender(self, gndr_entry):
+        """
+
+        :param gndr_entry:
+        :return:
+        """
+        gndr_entry['createdAt'] = datetime.datetime.utcnow()
+        self.dbcon.insert(gndr_entry)
+
+        gndr_entry['gndr'] = self.get_gendr(gndr_entry['cid'])
+
+        return gndr_entry
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Running model.')
+
+    parser.add_argument('--model', default='MODEL3', dest='model',
+                        help='Provide Model')
+
+    args = parser.parse_args()
+
+    if args.model == cfg.MODE1_NM:
+        Model1().dispatch()
+
+    elif args.model == cfg.MODE2_NM:
+        Model2().dispatch()
+
+    elif args.model == cfg.MODE3_NM:
+        Model3().dispatch()
