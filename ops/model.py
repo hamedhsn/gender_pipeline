@@ -17,6 +17,8 @@ class Model1(Model):
         :param gndr_entry:
         :return:
         """
+        self.dbcon.insert({gndr_entry})
+
         return gndr_entry
 
 
