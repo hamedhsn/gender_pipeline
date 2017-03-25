@@ -9,7 +9,7 @@ def ingest(json_msg):
 if __name__ == '__main__':
     prod = KfkProducer(INGESTION_TOPIC)
 
-    for i in range(5):
+    for i in range(500):
         json_msg = {
             'cid': 'C128',
             'gndr': 'female'

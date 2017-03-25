@@ -24,6 +24,31 @@ class Model2(Model):
     def __init__(self, name=cfg.MODE2_NM, cons_grp=cfg.CONSUMER_GRP_MODEL2, col_nm=cfg.MODEL2_COLNM):
         super().__init__(consumer_grp=cons_grp, model_nm=name, col_nm=col_nm)
 
+    @staticmethod
+    def inc_gndr(counter_col, _id, gndr):
+        """Increment the gender counter and return both counts
+
+        :param gndr: gender
+        :param counter_col: counter collection
+        :param _id: the name of the field to be incremented
+        :return: the next subsequent number
+        """
+        inc = dict()
+        oth_gndr = cfg.GNDR_FEMALE if gndr == cfg.GNDR_MALE else cfg.GNDR_MALE
+
+        inc['cnt.{}'.format(oth_gndr)] = 0
+        inc['cnt.{}'.format(gndr)] = 1
+
+        q = {'_id': _id}
+        f = {'$inc': inc}
+        res = counter_col.find_one_and_update(q, f, upsert=True)
+
+        if not res:
+            return {gndr: 1, oth_gndr: 0}
+        else:
+            res['cnt'][gndr] += 1
+            return res['cnt']
+
     def identify_gender(self, gndr_entry):
         """ 1) Increment gender based on gender field in gender entry
             2) Compare count of each gender and return the selected gender
@@ -44,10 +69,11 @@ class Model3(Model):
         super().__init__(consumer_grp=cons_grp, model_nm=name, col_nm=col_nm)
 
     def get_gendr(self, cid):
-        """
+        """ 1) aggregate query to get sum of each genders
+            2) return gender with max number
 
-        :param cid:
-        :return:
+        :param cid: client id
+        :return: output gender
         """
         match = {'$match': {'cid': cid}}
         grp = {'$group': {'_id': '$gndr', 'tot': {'$sum': 1}}}
@@ -63,10 +89,11 @@ class Model3(Model):
         return gndr
 
     def identify_gender(self, gndr_entry):
-        """
+        """ 1) Insert gender entry
+            2) call get_gendr to aggregate the genders and returns the max one
 
-        :param gndr_entry:
-        :return:
+        :param gndr_entry: gender entry
+        :return: target entry for output with the right gender
         """
         gndr_entry['createdAt'] = datetime.datetime.utcnow()
         self.dbcon.insert(gndr_entry)
