@@ -1,2 +1,2 @@
 # Gender Data Pipeline
-Please look at doc folder for more info and architecture.
+Please look at the doc folder for more info and architecture.
