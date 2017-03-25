@@ -6,7 +6,10 @@ def mongo_connect(col_nm=None, dbname=cfg.MNG_DBNAME, host=cfg.MNG_HOST, port=cf
                   user=cfg.MNG_USER_NAME, passwd=cfg.MNG_PASSWORD,
                   ssl=cfg.MNG_SSL, source=cfg.MNG_SOURCE):
 
-    connection = MongoClient(host=host, port=port, ssl=ssl)
+    if ssl:
+        connection = MongoClient(host=host, port=port, ssl=ssl)
+    else:
+        connection = MongoClient(host=host, port=port)
 
     if user:
         connection[dbname].authenticate(name=user, password=passwd, source=source)
