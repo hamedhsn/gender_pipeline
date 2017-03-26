@@ -18,30 +18,31 @@ class WebServiceInfo(Resource):
 
 
 class GenderService(Resource):
-    def get(self):
+    def get(self, ClientID=None):
 
         args = parser.parse_args()
-        parser.add_argument('cid', type=str)
         parser.add_argument('model', default='MODEL1', type=str)
         print(args)
 
-        _id = '{}_{}'.format(args.cid, args.model)
+        _id = '{}_{}'.format(ClientID, args.model)
         q = {'_id': _id}
+        print(q)
         res = dbcon_oput.find_one(q)
 
         if res:
-            return {res['cid']: res['gndr']}
+            return res['gndr']
         else:
             return 'The gender for provided client is not available!!'
 
 # route resource here
 api_base_url = '/api/v1'
 api.add_resource(WebServiceInfo, '/')
-api.add_resource(GenderService, api_base_url + '/gender')
+api.add_resource(GenderService, api_base_url + '/getGender/<ClientID>')
 
 
 # ######### EXAMPLES: #################
-# curl 127.0.0.1:5000/api/v1/gender\?model=MODEL1\&\&cid=C123
+# curl 127.0.0.1:5000/api/v1/getGender/C124\?model=MODEL2
+
 
 if __name__ == '__main__':
     dbcon_oput = mongo_connect(col_nm=OUTPUT_COLNM)

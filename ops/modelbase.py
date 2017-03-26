@@ -49,8 +49,9 @@ class Model:
 
             rslt_entry = self.identify_gender(gndr_entry)
 
-            print(rslt_entry)
             self.prod.produce(rslt_entry)
+
+            print(rslt_entry)
 
     def identify_gender(self, gndr_entry):
         """ this function will implement gender identification in each
