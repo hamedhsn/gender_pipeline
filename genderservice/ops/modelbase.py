@@ -1,13 +1,13 @@
-from configuration import GNDR_SERV_TOPIC
-from configuration import INGESTION_TOPIC
-from utils.kfkpywrapper import KfkConsumer, KfkProducer
-from utils.mongo import mongo_connect
+import genderservice.configuration as cfg
+
+from genderservice.utils.kfkpywrapper import KfkConsumer, KfkProducer
+from genderservice.utils.mongo import mongo_connect
 
 
 class Model:
     def __init__(self, consumer_grp, model_nm, col_nm):
-        self.cons = KfkConsumer(INGESTION_TOPIC, consumer_grp)
-        self.prod = KfkProducer(GNDR_SERV_TOPIC)
+        self.cons = KfkConsumer(cfg.INGESTION_TOPIC, consumer_grp)
+        self.prod = KfkProducer(cfg.GNDR_SERV_TOPIC)
         self.dbcon = mongo_connect(col_nm=col_nm)
 
         self.modelnm = model_nm
@@ -22,7 +22,8 @@ class Model:
 
             yield gndr_entry
 
-    def create_gndr_entry(self, msg, model_nm):
+    @staticmethod
+    def create_gndr_entry(msg, model_nm):
         """ create a json template that will be processed by identify_gender function
 
         :param msg: json ingested message

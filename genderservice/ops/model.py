@@ -1,9 +1,8 @@
 import argparse
 import datetime
 
-import configuration as cfg
-from ops.modelbase import Model
-from utils.mongo import inc_gndr
+from genderservice import configuration as cfg
+from genderservice.ops.modelbase import Model
 
 
 class Model1(Model):
@@ -17,7 +16,7 @@ class Model1(Model):
         :param gndr_entry:
         :return:
         """
-        self.dbcon.insert({gndr_entry})
+        self.dbcon.insert(gndr_entry)
 
         return gndr_entry
 
@@ -60,7 +59,7 @@ class Model2(Model):
         """
         _id = gndr_entry['cid']
         gndr = gndr_entry['gndr']
-        cnt = inc_gndr(self.dbcon, _id, gndr)
+        cnt = self.inc_gndr(self.dbcon, _id, gndr)
 
         gndr_entry['gndr'] = 'male' if cnt['male'] > cnt['female'] else 'female'
         return gndr_entry
@@ -119,4 +118,4 @@ if __name__ == '__main__':
         Model2().dispatch()
 
     elif args.model == cfg.MODE3_NM:
-        Model3().dispatch()
+        Model1().dispatch()

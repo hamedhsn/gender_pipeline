@@ -1,9 +1,10 @@
 import logging
+
 from flask import Flask
 from flask_restful import reqparse, Api, Resource
 
-from configuration import OUTPUT_COLNM
-from utils.mongo import mongo_connect
+from genderservice.configuration import OUTPUT_COLNM
+from genderservice.utils.mongo import mongo_connect
 
 app = Flask(__name__)
 api = Api(app)

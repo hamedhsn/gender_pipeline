@@ -37,3 +37,6 @@ GNDR_FEMALE = 'female'
 MODE1_NM = 'MODEL1'
 MODE2_NM = 'MODEL2'
 MODE3_NM = 'MODEL3'
+
+SERIALIZATIO_AVRO = 'avro'
+avro_test_schema = {}

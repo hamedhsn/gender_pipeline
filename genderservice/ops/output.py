@@ -1,7 +1,6 @@
-import configuration as cfg
-
-from utils.kfkpywrapper import KfkConsumer
-from utils.mongo import mongo_connect
+from genderservice.utils.kfkpywrapper import KfkConsumer
+from genderservice import configuration as cfg
+from genderservice.utils.mongo import mongo_connect
 
 
 def prepare_output(msg):
@@ -30,6 +29,7 @@ def dispatch_output():
 
     for msg in cons.consume():
         try:
+            print(msg)
             # reform the output message
             entry = prepare_output(msg)
 

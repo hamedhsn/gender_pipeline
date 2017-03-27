@@ -1,5 +1,6 @@
-import configuration as cfg
 from pymongo import MongoClient
+
+from genderservice import configuration as cfg
 
 
 def mongo_connect(col_nm=None, dbname=cfg.MNG_DBNAME, host=cfg.MNG_HOST, port=cfg.MNG_PORT,

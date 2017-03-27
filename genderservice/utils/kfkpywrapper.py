@@ -1,13 +1,14 @@
-import logging
 import io
 import json
+import logging
 
-import configuration as kfkcfg
-from pykafka import KafkaClient
-from bson import json_util
 from avro import schema
 from avro.io import BinaryDecoder, BinaryEncoder, DatumWriter, DatumReader
+from bson import json_util
+from pykafka import KafkaClient
 from pykafka.common import OffsetType
+
+from genderservice import configuration as kfkcfg
 
 parser_logger = logging.getLogger("Kafka producer");
 parser_logger.setLevel(logging.INFO)
@@ -42,7 +43,8 @@ class KfkWrapper:
                 raise Exception('Problem in parsing the avro schema. Check your schema!')
 
         try:
-            client = KafkaClient(hosts=', '.join(self.kfk_nodes))
+            hosts = ', '.join(self.kfk_nodes)
+            client = KafkaClient(hosts=hosts)
             topic = client.topics[bytes(ktopic, 'utf-8')]
 
             if kfka_typ == kfkcfg.KFK_PRODUCER:
