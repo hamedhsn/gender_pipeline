@@ -1,2 +1,3 @@
 # Gender Data Pipeline
-- Please look at the doc folder for more info, architecture and how to install it.
+- Checkout genderservice folder for "how to install it"
+- For more information and architecture please look at the docs folder 
